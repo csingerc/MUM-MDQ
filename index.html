@@ -123,7 +123,27 @@ tbody td{padding:9px 11px;vertical-align:middle}
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><span style="color:#7f8c8d;font-size:14px">Cargando datos…</span></div>
+<!-- LOGIN -->
+<div id="login-screen" style="position:fixed;inset:0;background:var(--mdq);z-index:99999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:36px 32px;width:90%;max-width:360px;box-shadow:0 16px 48px rgba(0,0,0,.3);text-align:center">
+    <div style="font-size:36px;margin-bottom:10px">🏭</div>
+    <h2 style="font-size:18px;color:var(--text);margin-bottom:4px">Control de Material</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Planta — Acceso restringido</p>
+    <div style="text-align:left;margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Clave de acceso</label>
+      <input id="pwd-input" type="password" placeholder="Ingresar clave"
+        style="margin-top:6px;width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:15px;font-family:inherit;outline:none"
+        onkeydown="if(event.key==='Enter')checkPwd()">
+    </div>
+    <div id="pwd-err" style="font-size:13px;color:var(--danger);margin-bottom:10px;min-height:18px"></div>
+    <button onclick="checkPwd()"
+      style="width:100%;padding:11px;background:var(--mdq);color:#fff;border:none;border-radius:7px;font-size:15px;font-weight:600;cursor:pointer">
+      Ingresar
+    </button>
+  </div>
+</div>
+
+<div id="loader" style="display:none"><div class="spinner"></div><span style="color:#7f8c8d;font-size:14px">Cargando datos…</span></div>
 
 <header>
   <h1>🏭 Control de Material — Planta</h1>
@@ -979,14 +999,44 @@ function exportHistCSV(reg) {
   dl(`Historial_${reg}_${new Date().toISOString().slice(0,10)}.csv`,[h.join(','),...rows].join('\n'));
 }
 
-// ===== INIT =====
-document.getElementById('hdr-fecha').textContent =
-  new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+// ===== AUTH =====
+const PWD_HASH = '7a4e3b2f1d9c6e8a0f5b2d4c7e1a3f9b2c8d6e4a1f7b3c5d9e2a8f4b6c1d3e7'; // placeholder, replaced below
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkPwd() {
+  const val = document.getElementById('pwd-input').value;
+  const hash = await sha256(val);
+  const correct = await sha256('Mariela2026');
+  if (hash === correct) {
+    sessionStorage.setItem('cm_auth','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('loader').style.display='flex';
+    startApp();
+  } else {
+    document.getElementById('pwd-err').textContent='Clave incorrecta';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function startApp() {
+  document.getElementById('hdr-fecha').textContent =
+    new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  loadAll().catch(err => {
+    document.getElementById('loader').style.display='none';
+    notif('Error de conexión Supabase: '+err.message,'err');
+  });
+}
 
-loadAll().catch(err => {
-  document.getElementById('loader').style.display='none';
-  notif('Error de conexión Supabase: '+err.message,'err');
-});
+// ===== INIT =====
+if (sessionStorage.getItem('cm_auth')==='1') {
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('loader').style.display='flex';
+  startApp();
+} else {
+  setTimeout(()=>document.getElementById('pwd-input').focus(), 100);
+}
 </script>
 </body>
 </html>
