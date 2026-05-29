@@ -180,13 +180,6 @@ tbody td{padding:9px 11px;vertical-align:middle}
           </select>
         </div>
         <div class="fg"><label>Cantidad *</label><input type="number" id="MDQ-i-cant" min="1" value="1"></div>
-        <div class="fg"><label>Responsable *</label><input id="MDQ-i-resp" placeholder="Nombre completo"></div>
-        <div class="fg"><label>Turno</label>
-          <select id="MDQ-i-turno">
-            <option value="">— Opcional —</option>
-            <option value="A">Turno A</option><option value="B">Turno B</option><option value="C">Turno C</option>
-          </select>
-        </div>
         <div class="fg span2"><label>Descripción del incidente</label><textarea id="MDQ-i-obs" placeholder="Qué ocurrió, dónde, cómo se encontró…"></textarea></div>
       </div>
       <!-- Inocuidad -->
@@ -276,7 +269,7 @@ tbody td{padding:9px 11px;vertical-align:middle}
     </div>
     <div id="hist-MDQ" class="card-body" style="display:none">
       <div class="tbl-wrap"><table><thead><tr>
-        <th>Fecha</th><th>Tipo</th><th>Ítem</th><th>Cant.</th><th>Turno</th><th>Resp.</th>
+        <th>Fecha</th><th>Tipo</th><th>Ítem</th><th>Cant.</th>
         <th>Corrección</th><th>Verif. eficacia</th><th>Prod. afecto</th><th>Producto</th><th>Lote</th><th>Destino</th><th>Obs.</th>
       </tr></thead><tbody id="hbody-MDQ"></tbody></table></div>
     </div>
@@ -308,13 +301,6 @@ tbody td{padding:9px 11px;vertical-align:middle}
           </select>
         </div>
         <div class="fg"><label>Cantidad *</label><input type="number" id="MUM-i-cant" min="1" value="1"></div>
-        <div class="fg"><label>Responsable *</label><input id="MUM-i-resp" placeholder="Nombre completo"></div>
-        <div class="fg"><label>Turno</label>
-          <select id="MUM-i-turno">
-            <option value="">— Opcional —</option>
-            <option value="A">Turno A</option><option value="B">Turno B</option><option value="C">Turno C</option>
-          </select>
-        </div>
         <div class="fg span2"><label>Descripción del incidente</label><textarea id="MUM-i-obs" placeholder="Qué ocurrió, dónde, cómo se encontró…"></textarea></div>
       </div>
       <div class="inoc-block">
@@ -395,7 +381,7 @@ tbody td{padding:9px 11px;vertical-align:middle}
     </div>
     <div id="hist-MUM" class="card-body" style="display:none">
       <div class="tbl-wrap"><table><thead><tr>
-        <th>Fecha</th><th>Tipo</th><th>Ítem</th><th>Cant.</th><th>Turno</th><th>Resp.</th>
+        <th>Fecha</th><th>Tipo</th><th>Ítem</th><th>Cant.</th>
         <th>Corrección</th><th>Verif. eficacia</th><th>Prod. afecto</th><th>Producto</th><th>Lote</th><th>Destino</th><th>Obs.</th>
       </tr></thead><tbody id="hbody-MUM"></tbody></table></div>
     </div>
@@ -407,13 +393,6 @@ tbody td{padding:9px 11px;vertical-align:middle}
   <div class="modal">
     <h3 id="ci-title">✅ Sin incidentes</h3>
     <div class="fgrid">
-      <div class="fg"><label>Responsable *</label><input id="ci-resp" placeholder="Nombre completo"></div>
-      <div class="fg"><label>Turno</label>
-        <select id="ci-turno">
-          <option value="">— Opcional —</option>
-          <option value="A">Turno A</option><option value="B">Turno B</option><option value="C">Turno C</option>
-        </select>
-      </div>
       <div class="fg span2"><label>Observaciones</label><textarea id="ci-obs" placeholder="Estado general, revisión completa, etc."></textarea></div>
     </div>
     <div class="modal-actions">
@@ -826,7 +805,7 @@ function renderHist(reg) {
   const tbody = document.getElementById('hbody-'+reg);
   const hist = S.hist[reg];
   if (!hist.length) {
-    tbody.innerHTML=`<tr><td colspan="13"><div class="empty"><div class="ico">📋</div>Sin registros</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="ico">📋</div>Sin registros</div></td></tr>`;
     return;
   }
   const lbl = {quiebre:'Quiebre',perdida:'Pérdida',melladura:'Melladura',sin_incidente:'Sin incidentes'};
@@ -839,8 +818,6 @@ function renderHist(reg) {
       <td style="font-weight:700;color:${r.tipo==='sin_incidente'?'var(--ok)':'var(--danger)'}">
         ${r.cantidad!=null?`-${r.cantidad}`:'—'}
       </td>
-      <td style="font-size:12px">${r.turno||'—'}</td>
-      <td style="font-size:12px">${r.responsable}</td>
       <td style="font-size:12px">${r.correccion||'—'}</td>
       <td style="font-size:12px">${r.verificacion_eficacia||'—'}</td>
       <td style="font-size:12px">${r.hay_producto_afecto===true?'<span style="color:var(--danger);font-weight:700">Sí</span>':r.hay_producto_afecto===false?'No':'—'}</td>
@@ -908,11 +885,8 @@ function abrirCheckin(reg) {
   abrirModal('modal-ci');
 }
 async function confirmarCheckin() {
-  const resp=document.getElementById('ci-resp').value.trim();
-  if (!resp) { notif('Indica el responsable','err'); return; }
-  const turno=document.getElementById('ci-turno').value||null;
   const obs=document.getElementById('ci-obs').value.trim()||null;
-  const {error}=await db.from('registros').insert({registro:ciReg,tipo:'sin_incidente',responsable:resp,turno,observaciones:obs});
+  const {error}=await db.from('registros').insert({registro:ciReg,tipo:'sin_incidente',responsable:'Mariela',observaciones:obs});
   if (error) { notif('Error: '+error.message,'err'); return; }
   cerrarModal('modal-ci');
   notif(`✅ Registro sin incidentes guardado — ${ciReg}`);
@@ -924,8 +898,7 @@ async function registrarIncidente(reg) {
   const itemId=parseInt(document.getElementById(`${reg}-i-item`).value);
   const tipo=document.getElementById(`${reg}-i-tipo`).value;
   const cant=parseInt(document.getElementById(`${reg}-i-cant`).value);
-  const resp=document.getElementById(`${reg}-i-resp`).value.trim();
-  const turno=document.getElementById(`${reg}-i-turno`).value||null;
+  const resp='Mariela';
   const obs=document.getElementById(`${reg}-i-obs`).value.trim()||null;
   const afecto=document.getElementById(`${reg}-i-afecto`).value;
   const corr=document.getElementById(`${reg}-i-corr`).value.trim()||null;
@@ -934,7 +907,7 @@ async function registrarIncidente(reg) {
   const lote=document.getElementById(`${reg}-i-lote`).value.trim()||null;
   const dest=document.getElementById(`${reg}-i-dest`).value||null;
 
-  if (!itemId||!tipo||isNaN(cant)||cant<1||!resp||!afecto) {
+  if (!itemId||!tipo||isNaN(cant)||cant<1||!afecto) {
     notif('Completa los campos obligatorios — incluye "¿Hay producto afecto?"','err'); return;
   }
   const item=S.items[reg].find(i=>i.id===itemId);
@@ -943,7 +916,7 @@ async function registrarIncidente(reg) {
 
   const [{ error:e1 }, { error:e2 }] = await Promise.all([
     db.from('registros').insert({
-      registro:reg, item_id:itemId, tipo, cantidad:cant, responsable:resp, turno, observaciones:obs,
+      registro:reg, item_id:itemId, tipo, cantidad:cant, responsable:resp, observaciones:obs,
       hay_producto_afecto: afecto==='si', correccion:corr, verificacion_eficacia:verif,
       producto:afecto==='si'?prod:null, lote:afecto==='si'?lote:null, destino_producto:afecto==='si'?dest:null,
     }),
@@ -956,12 +929,11 @@ async function registrarIncidente(reg) {
 }
 
 function limpiarIncidente(reg) {
-  [`${reg}-i-resp`,`${reg}-i-obs`,`${reg}-i-prod`,`${reg}-i-lote`,`${reg}-i-corr`,`${reg}-i-verif`]
+  [`${reg}-i-obs`,`${reg}-i-prod`,`${reg}-i-lote`,`${reg}-i-corr`,`${reg}-i-verif`]
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById(`${reg}-i-item`).value='';
   document.getElementById(`${reg}-i-cant`).value=1;
   document.getElementById(`${reg}-i-tipo`).selectedIndex=0;
-  document.getElementById(`${reg}-i-turno`).value='';
   document.getElementById(`${reg}-i-afecto`).value='';
   toggleProducto(reg);
 }
@@ -987,11 +959,11 @@ function exportCSV(reg) {
 }
 
 function exportHistCSV(reg) {
-  const h=['Fecha','Tipo','Sector','Material','Cantidad','Turno','Responsable','Correccion','Verif_Eficacia','Producto_Afecto','Producto','Lote','Destino_Producto','Observaciones'];
+  const h=['Fecha','Tipo','Sector','Material','Cantidad','Correccion','Verif_Eficacia','Producto_Afecto','Producto','Lote','Destino_Producto','Observaciones'];
   const rows=S.hist[reg].map(r=>[
     fmtDate(r.fecha),r.tipo,
     r.items?r.items.sector:'',r.items?r.items.material:'',
-    r.cantidad??'',r.turno||'',r.responsable,
+    r.cantidad??'',
     r.correccion||'',r.verificacion_eficacia||'',
     r.hay_producto_afecto===true?'Sí':r.hay_producto_afecto===false?'No':'',
     r.producto||'',r.lote||'',r.destino_producto||'',r.observaciones||''
