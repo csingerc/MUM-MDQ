@@ -724,10 +724,11 @@ async function loadAll() {
 }
 
 async function loadReg(reg) {
-  const [{ data:items }, { data:last }, { data:hist }] = await Promise.all([
+  const [{ data:items }, { data:last }, { data:hist }, { count:total }] = await Promise.all([
     db.from('items').select('*').eq('registro',reg).eq('activo',true).order('sector').order('material'),
     db.from('registros').select('fecha').eq('registro',reg).order('fecha',{ascending:false}).limit(1),
     db.from('registros').select('*,items(sector,material)').eq('registro',reg).order('fecha',{ascending:false}).limit(150),
+    db.from('items').select('*',{count:'exact',head:true}).eq('registro',reg),
   ]);
   S.items[reg] = items || [];
   S.lastCI[reg] = last&&last.length ? last[0].fecha : null;
@@ -736,8 +737,8 @@ async function loadReg(reg) {
   renderHist(reg);
   renderCI(reg);
   updateSelect(reg);
-  // Auto-seed on first load if empty
-  if (S.items[reg].length === 0) autoSeed(reg);
+  // Auto-seed solo si nunca hubo ítems (ni activos ni eliminados)
+  if (total === 0) autoSeed(reg);
 }
 
 // ===== AUTO SEED =====
