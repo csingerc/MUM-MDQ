@@ -881,8 +881,7 @@ async function confirmarEliminar() {
 function abrirCheckin(reg) {
   ciReg=reg;
   document.getElementById('ci-title').textContent=`✅ Sin incidentes esta semana — ${reg}`;
-  ['ci-resp','ci-obs'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('ci-turno').value='';
+  document.getElementById('ci-obs').value='';
   abrirModal('modal-ci');
 }
 async function confirmarCheckin() {
